@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Training outputs (regenerate locally; keep repo small)
+geocam_runs/
+
+# Checkpoints anywhere
+*.pt
+*.pth
+
+# Internal / third-party (not part of GeoCAM release)
+opti-acoustic-preprocessing-tools-main/
+GeoCAM_cursor_prompt.md
+cursor_prompt_GeoCAM_v2.md
+GeoCAM_Complete.md
+geocam_ablation_analysis.md
+geocam_ablation_report.md
+walkthrough.md
+
+# BenthiCat / local dataset root (not the geocam/data Python package)
+/data/
+**/BenthiCat/
+
+# WandB
+wandb/
+
+# Figures cache (regenerate with make_paper_figures)
+figures/*.png

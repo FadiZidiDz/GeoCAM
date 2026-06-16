@@ -1,0 +1,2 @@
+pair_id,fixed_path,moving_path,sector
+example_pair_0001,d:/Benith/data/sonar/sonar/example_fixed.npy,d:/Benith/data/sonar/sonar/example_moving.npy,N07

@@ -1,0 +1,84 @@
+data:
+  data_root: "/path/to/BenthiCat/data"
+  sonar_subdir: "sonar/sonar"
+  camera_subdir: "camera/camera"
+  correspondences: "correspondences.json"
+  overlap_weights: "overlap_weights.json"
+  sonar_csv: "sonar/sonar/sonar.csv"
+  camera_csv: "camera/camera/camera.csv"
+  max_optical_per_tile: 8
+  train_split: 0.8
+  seed: 42
+  extension:
+    # overlap_sampling biases optical subset selection toward high-overlap images.
+    # Ablation shows small positive effect; baseline uses "none".
+    name: "overlap_sampling"
+
+model:
+  sonar:
+    img_size: 256
+    patch_size: 16
+    embed_dim: 384
+    depth: 12
+    num_heads: 6
+    mlp_ratio: 4.0
+    # Leave empty for ImageNet ViT-S/16 init (pretrained=True fallback).
+    # Set to MAE checkpoint path when available for best results.
+    mae_checkpoint: ""
+  optical:
+    backbone: "dinov2_vits14"
+    embed_dim: 384
+    frozen: true
+  saa:
+    embed_dim: 384
+    num_heads: 4       # increased from 2: more heads capture diverse optical patterns
+    ffn_ratio: 4.0
+    dropout: 0.05     # light dropout to prevent SAA entropy collapse
+  projection_head:
+    hidden_dim: 512
+    out_dim: 256
+  cmmr:
+    decoder_embed_dim: 192
+    decoder_depth: 4
+    decoder_num_heads: 3
+    decoder_mlp_ratio: 4.0
+    mask_ratio: 0.4
+
+training:
+  epochs: 100
+  batch_size: 64         # use full GPU memory; 32 is acceptable minimum
+  optimizer: "adamw"
+  lr_encoder: 5.0e-5    # slightly lower than default: stable early convergence with ImageNet init
+  lr_head: 5.0e-4       # slightly lower: SAA + proj heads train more gradually
+  weight_decay: 0.05
+  warmup_epochs: 10
+  # KEY FIX: temperature=0.07 requires B>=512. For B=32-64 use 0.10-0.20.
+  temperature: 0.15
+  lambda_cmmr: 0.0      # disable CMMR: ablation shows it hurts R@1 by 2x at <50 epochs
+  clip_grad: 1.0
+  fp16: true
+  num_workers: 8
+  # CMMR masking: keep false during contrastive warmup (epochs 0-100).
+  # Re-enable for a 20-epoch CMMR fine-tuning stage after contrastive convergence.
+  enable_cmmr_masking: false
+  # Hard-negative upweighting: penalises most similar negatives 2x.
+  # Particularly useful when tiles have geographically close (but distinct) neighbors.
+  hard_negatives: true
+
+eval:
+  linear_probe_epochs: 100
+  linear_probe_lr: 0.1
+  linear_probe_momentum: 0.9
+  num_classes: 12
+  retrieval_k: [1, 5]
+  downstream:
+    tile_size: 256
+    resize_mode: "center_crop"
+    ignore_index: 255
+    batch_size: 32
+    num_workers: 4
+
+logging:
+  use_wandb: false
+  project: "geocam"
+  log_every: 50

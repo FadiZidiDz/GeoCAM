@@ -1,0 +1,25 @@
+matching_bench:
+  protocol_csv: "geocam/matching/protocols/n07_pairs.csv"
+  control_points_json: ""
+  runs_root: "geocam_runs/matching_paper"
+  repeats: 3
+  seed: 42
+  variants:
+    - name: "target_like_baseline"
+      use_shadow_filter: true
+      use_terrain_filter: true
+      use_nonrigid_refine: false
+      top_k_candidates: 100
+      adaptive_schedule: false
+    - name: "geocam_guided"
+      use_shadow_filter: true
+      use_terrain_filter: true
+      use_nonrigid_refine: false
+      top_k_candidates: 20
+      adaptive_schedule: true
+    - name: "full_proposed"
+      use_shadow_filter: true
+      use_terrain_filter: true
+      use_nonrigid_refine: true
+      top_k_candidates: 20
+      adaptive_schedule: true

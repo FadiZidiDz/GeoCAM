@@ -1,0 +1,75 @@
+data:
+  data_root: "/path/to/BenthiCat/data"
+  sonar_subdir: "sonar/sonar"
+  camera_subdir: "camera/camera"
+  correspondences: "correspondences.json"
+  overlap_weights: "overlap_weights.json"
+  sonar_csv: "sonar/sonar/sonar.csv"
+  camera_csv: "camera/camera/camera.csv"
+  max_optical_per_tile: 8
+  train_split: 0.8
+  seed: 42
+  extension:
+    # Ablation winner: no overlap-based optical sampling.
+    name: "none"
+
+model:
+  sonar:
+    img_size: 256
+    patch_size: 16
+    embed_dim: 384
+    depth: 12
+    num_heads: 6
+    mlp_ratio: 4.0
+    mae_checkpoint: ""
+  optical:
+    backbone: "dinov2_vits14"
+    embed_dim: 384
+    frozen: true
+  saa:
+    embed_dim: 384
+    num_heads: 2
+    ffn_ratio: 4.0
+  projection_head:
+    hidden_dim: 512
+    out_dim: 256
+  cmmr:
+    decoder_embed_dim: 192
+    decoder_depth: 4
+    decoder_num_heads: 3
+    decoder_mlp_ratio: 4.0
+    mask_ratio: 0.4
+
+training:
+  epochs: 100
+  batch_size: 64
+  optimizer: "adamw"
+  lr_encoder: 1.0e-4
+  lr_head: 1.0e-3
+  weight_decay: 0.05
+  warmup_epochs: 10
+  temperature: 0.07
+  lambda_cmmr: 0.1
+  clip_grad: 1.0
+  fp16: true
+  num_workers: 4
+  # Ablation winner: disable CMMR for this pretraining recipe.
+  enable_cmmr_masking: false
+
+eval:
+  linear_probe_epochs: 100
+  linear_probe_lr: 0.1
+  linear_probe_momentum: 0.9
+  num_classes: 12
+  retrieval_k: [1, 5]
+  downstream:
+    tile_size: 256
+    resize_mode: "center_crop"
+    ignore_index: 255
+    batch_size: 32
+    num_workers: 4
+
+logging:
+  use_wandb: false
+  project: "geocam"
+  log_every: 50

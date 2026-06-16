@@ -1,0 +1,87 @@
+data:
+  data_root: "/path/to/BenthiCat/data"
+  sonar_subdir: "sonar/sonar"
+  camera_subdir: "camera/camera"
+  correspondences: "correspondences.json"
+  overlap_weights: "overlap_weights.json"
+  sonar_csv: "sonar/sonar/sonar.csv"
+  camera_csv: "camera/camera/camera.csv"
+  max_optical_per_tile: 8
+  train_split: 0.8
+  seed: 42
+  extension:
+    # Final recipe (selected by ablation): do NOT bias sampling by overlap.
+    name: "none"
+
+model:
+  sonar:
+    img_size: 256
+    patch_size: 16
+    embed_dim: 384
+    depth: 12
+    num_heads: 6
+    mlp_ratio: 4.0
+    # Leave empty to use ImageNet ViT-S/16 initialization fallback.
+    # Set to a MAE checkpoint path if/when available for additional gains.
+    mae_checkpoint: ""
+  optical:
+    backbone: "dinov2_vits14"
+    embed_dim: 384
+    frozen: true
+  saa:
+    embed_dim: 384
+    num_heads: 4
+    ffn_ratio: 4.0
+    dropout: 0.05
+  projection_head:
+    hidden_dim: 512
+    out_dim: 256
+  cmmr:
+    decoder_embed_dim: 192
+    decoder_depth: 4
+    decoder_num_heads: 3
+    decoder_mlp_ratio: 4.0
+    mask_ratio: 0.4
+
+training:
+  epochs: 100
+  batch_size: 64
+  optimizer: "adamw"
+  lr_encoder: 5.0e-5
+  lr_head: 5.0e-4
+  weight_decay: 0.05
+  warmup_epochs: 10
+  temperature: 0.15
+  lambda_cmmr: 0.0
+  clip_grad: 1.0
+  fp16: true
+  num_workers: 8
+  # Disable CMMR during contrastive pre-training (ablation winner).
+  enable_cmmr_masking: false
+  # Keep hard negatives off for the final recipe (it degraded val/infonce in tests).
+  hard_negatives: false
+  hard_negative_boost: 0.0
+
+eval:
+  linear_probe_epochs: 100
+  linear_probe_lr: 0.1
+  linear_probe_momentum: 0.9
+  num_classes: 12
+  retrieval_k: [1, 5]
+  downstream:
+    tile_size: 256
+    resize_mode: "center_crop"
+    ignore_index: 255
+    batch_size: 32
+    num_workers: 4
+
+logging:
+  use_wandb: false
+  project: "geocam"
+  log_every: 50
+  # Keep only the best checkpoint by default.
+  save_best_only: true
+  # Optional extras below are disabled for clean paper runs.
+  save_last: false
+  save_periodic_every: 0
+

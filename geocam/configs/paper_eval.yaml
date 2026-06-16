@@ -1,0 +1,17 @@
+paper_eval:
+  seeds: [42, 52, 62]
+  default_epochs: 100
+  default_batch_size: 64
+  default_num_workers: 8
+  output_root: "geocam_runs/paper_eval"
+  include_hardneg_tuned: false
+  variants:
+    - name: "final_paper"
+      config: "geocam/configs/final_paper.yaml"
+      overrides: {}
+    - name: "no_overlap_sampling"
+      config: "geocam/configs/final_paper.yaml"
+      overrides:
+        data.extension.name: "none"
+        training.hard_negatives: false
+        training.hard_negative_boost: 0.0
